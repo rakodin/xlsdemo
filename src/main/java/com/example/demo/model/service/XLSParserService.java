@@ -19,6 +19,8 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @Slf4j
@@ -40,52 +42,51 @@ public class XLSParserService {
 
 	/*
 	xlsx template
-	row0 skip
-	row1 col1: operation
-	row2 col2: document number
-	row3 col2: document date
-	row4 col*: skip (header)
-	row5 col0..col2: code || count || name
-	row7....
+	row0 col1: operation
+	row1 col2: document number
+	row2 col2: document date
+	row3: skip (header)
+	row4 col0..col2: code || count || name
+	row5....
 	*/
 	public String parseXLS(File file) {
 		FileInputStream fis = null;
 		XSSFWorkbook workbook = null;
 		List<CommodityBean> res = new ArrayList<>();
-		DocHeaderBean dh = new DocHeaderBean();
+		AtomicReference<DocHeaderBean> dhRef = new AtomicReference<>(new DocHeaderBean());
 		try {
 			fis = openStream(file);
 			workbook = new XSSFWorkbook(fis);
 			XSSFSheet sheet = workbook.getSheetAt(0);
-			Iterator<Row> rowIterator = sheet.rowIterator();
-			int rowCount = 0;
-			while (rowIterator.hasNext()) {
-				Row row = rowIterator.next();
-				if (rowCount == 0) {
-					dh.setOperationType(parseOperationType(row.getCell(1)));
-				}
-				if (rowCount == 1) {
-					dh.setDocumentNumber(row.getCell(1).getStringCellValue());
-				}
-				if (rowCount == 2) {
-					dh.setDocumentDate(parseLocalDate(row.getCell(1)));
-				}
-				//parse header
-				if (rowCount > 3) {
-					if (row.getFirstCellNum() >= 0) {
-						CommodityBean cb = new CommodityBean();
-						cb.setNomenclatureId(row.getCell(0).getStringCellValue());
-						cb.setCount(parseInteger(row.getCell(1)));
-						cb.setName(row.getCell(2).getStringCellValue());
-						res.add(cb);
+			sheet.rowIterator().forEachRemaining(row -> {
+				try {
+					//parse header
+					DocHeaderBean dh = dhRef.get();
+					if (row.getRowNum() == 0) {
+						dh.setOperationType(parseOperationType(row.getCell(1)));
+					} else if (row.getRowNum() == 1) {
+						dh.setDocumentNumber(row.getCell(1).getStringCellValue());
+					} else if (row.getRowNum() == 2) {
+						dh.setDocumentDate(parseLocalDate(row.getCell(1)));
+					} else if (row.getRowNum() > 3) {
+						//parse data
+						if (row.getFirstCellNum() >= 0) {
+							CommodityBean cb = new CommodityBean();
+							cb.setNomenclatureId(row.getCell(0).getStringCellValue());
+							cb.setCount(parseInteger(row.getCell(1)));
+							cb.setName(row.getCell(2).getStringCellValue());
+							res.add(cb);
+						}
 					}
+				} catch (IOException e) {
+					throw new RuntimeException("Parse error on row " + row.getRowNum(), e);
 				}
-				rowCount ++;
-			}
+			});
+			DocHeaderBean dh = dhRef.get();
 			dh.setCommodityList(res);
-			dh = docHeaderService.save(dh);
+			docHeaderService.save(dh);
 			return "Загружено " + (res.size()) + " записей из файла.";
-		} catch (IOException e) {
+		} catch (IOException | RuntimeException e) {
 			log.error("XLSX Load error:", e);
 			return "Не могу загрузить файл: "  + e.getMessage();
 		} finally {

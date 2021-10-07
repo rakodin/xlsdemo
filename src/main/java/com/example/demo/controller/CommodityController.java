@@ -59,7 +59,6 @@ public class CommodityController {
 	public String handleFileUpload(@RequestParam("file") MultipartFile file,
 								   RedirectAttributes redirectAttributes) {
 		Path resFile = storageService.store(file);
-		//TODO: parse XLS file
 		String result = xlsParserService.parseXLS(storageService.loadAsFile(resFile));
 		redirectAttributes.addFlashAttribute("message",
 				"Файл " + file.getOriginalFilename() + " успешно загружен. " + result);
@@ -70,6 +69,6 @@ public class CommodityController {
 	@ExceptionHandler({StorageFileNotFoundException.class, StorageException.class})
 	public ResponseEntity<?> handleStorageFileNotFound(RuntimeException e) {
 		log.error(e.getMessage(), e);
-		return ResponseEntity.notFound().build();
+		return ResponseEntity.internalServerError().build();
 	}
 }

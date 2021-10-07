@@ -23,16 +23,20 @@
 
     </form>
 </div>
-Список файлов:
-<div>
-    <ul>
+<div th:if="${files}">
+    Список файлов:
+    <ol>
         <li th:each="file : ${files}">
             <a th:href="${file}" th:text="${file}" />
         </li>
-    </ul>
+    </ol>
 </div>
 <div th:if="${documents}">
+    Загружено:
+    <ol>
+
     <span th:each="doc : ${documents}">
+        <li>
         <b>Документ</b> № <span th:text="${doc.getDocumentNumber()}"/>
         от <b><span th:text="${doc.getDocumentDate()}"/> </b>
         тип: <b><span th:text="${doc.getOperationType().getDescription()}"/></b>
@@ -52,7 +56,10 @@
             </tr>
         </tbody>
     </table>
+        </li>
     </span>
+
+    </ol>
 </div>
 </body>
 </html>

@@ -18,13 +18,15 @@ public class DemoApplication {
 		SpringApplication.run(DemoApplication.class, args);
 	}
 
-	@Bean
-	CommandLineRunner init(StorageService storageService) {
-		return (args) -> {
-			/*storageService.deleteAll();
-			storageService.init();*/
-		};
-	}
+//	@Bean
+//	CommandLineRunner init(StorageService storageService) {
+//		return (args) -> {
+//			if (args != null && args[0].equals("clean")) {
+//				storageService.deleteAll();
+//				storageService.init();
+//			}
+//		};
+//	}
 
 	@Bean
 	//force UTF-8 encoding

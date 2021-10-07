@@ -6,7 +6,7 @@ import lombok.Getter;
 public enum OperationType {
 
 	INBOUND("приход"),
-	OUTBOUND("расход");
+	OUTBOUND("списание");
 
 	private final String description;
 
