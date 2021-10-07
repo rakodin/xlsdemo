@@ -1,0 +1,58 @@
+<html xmlns:th="https://www.thymeleaf.org" lang="ru">
+<head>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+    </style>
+
+</head>
+<body>
+<div th:if="${message}">
+    <h3 th:text="${message}"/>
+</div>
+
+<div>
+    <form method="POST" enctype="multipart/form-data" action="/">
+        <table>
+            <tr><td>Файл:</td><td><input type="file" name="file" /></td>
+            <td></td><td><input type="submit" value="Загрузить" /></td></tr>
+            <tr><td rowspan="2"><a href="/clean">Очистить список</a></td></tr>
+        </table>
+
+    </form>
+</div>
+Список файлов:
+<div>
+    <ul>
+        <li th:each="file : ${files}">
+            <a th:href="${file}" th:text="${file}" />
+        </li>
+    </ul>
+</div>
+<div th:if="${documents}">
+    <span th:each="doc : ${documents}">
+        <b>Документ</b> № <span th:text="${doc.getDocumentNumber()}"/>
+        от <b><span th:text="${doc.getDocumentDate()}"/> </b>
+        тип: <b><span th:text="${doc.getOperationType().getDescription()}"/></b>
+    <table>
+    <thead>
+        <tr>
+            <td><b>Название</b></td>
+            <td><b>Код</b></td>
+            <td><b>Количество</b></td>
+        </tr>
+        </thead>
+        <tbody>
+            <tr th:each="cb : ${doc.getCommodityList()}">
+                <td><span th:text="${cb.getName()}"/></td>
+                <td><span th:text="${cb.getNomenclatureId()}"/></td>
+                <td><span th:text="${cb.getCount()}"/></td>
+            </tr>
+        </tbody>
+    </table>
+    </span>
+</div>
+</body>
+</html>
