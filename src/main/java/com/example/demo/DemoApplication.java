@@ -24,7 +24,6 @@ public class DemoApplication {
 			/*storageService.deleteAll();
 			storageService.init();*/
 		};
-		};
 	}
 
 	@Bean
